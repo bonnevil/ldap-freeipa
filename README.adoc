@@ -1,0 +1,27 @@
+= ldap-freeipa.py
+
+Ansible dynamic inventory script for FreeIPA.  Tested using FreeIPA 4.4.
+
+== Description
+
+This script performs a LDAP simple bind against a FreeIPA server using a
+low-privilege service user, and collects information about registered 
+hosts and hostgroups and maps those directly into the Ansible inventory.
+
+Unlike the freeipa.py script currently in the upstream contrib repository 
+(https://github.com/ansible/ansible/tree/devel/contrib/inventory), this
+script does not require a Kerberos credential or use the FreeIPA API.
+
+== Getting Started
+
+The script will need to be edited before it is used.  You will need to 
+know
+
+* The LDAP URL for your FreeIPA server (for example, ldap://your-ipa-server.example.com)
+* The BaseDN of your FreeIPA server
+* The DN and password for your service user
+
+== License
+
+This project is licensed under the Simplified (2-clause) BSD license.
+See the link:LICENSE[LICENSE] file for details.
