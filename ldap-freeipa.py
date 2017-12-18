@@ -156,4 +156,3 @@ if __name__ == '__main__':
     else:
         print("Usage: %s --list or --host <hostname>" % sys.argv[0])
         sys.exit(1)
- 
