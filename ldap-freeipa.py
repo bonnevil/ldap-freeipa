@@ -30,6 +30,13 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import json
+import ldap
+import sys
+
+###################################################
+# DO NOT EDIT ABOVE THIS LINE.
+
 ##
 # Configuration settings
 ##
@@ -56,10 +63,6 @@ LDAP_BINDPW = "needabetterpassword"
 # DO NOT EDIT BELOW THIS LINE.
 ###################################################
 
-import json
-import ldap
-import sys
-  
 def listgroup():
 
     # Simple bind to the FreeIPA server and run a subtree
