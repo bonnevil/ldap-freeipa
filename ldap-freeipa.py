@@ -63,6 +63,7 @@ LDAP_BINDPW = "needabetterpassword"
 # DO NOT EDIT BELOW THIS LINE.
 ###################################################
 
+
 def listgroup():
 
     # Simple bind to the FreeIPA server and run a subtree
@@ -86,7 +87,12 @@ def listgroup():
         sys.exit(1)
 
     try:
-        ldap_result = l.search(basedn, search_scope, search_filter, search_attribute)
+        ldap_result = l.search(
+            basedn, 
+            search_scope, 
+            search_filter, 
+            search_attribute
+        )
         ldap_result_set = []
         hostgroup = {}
         while 1:
@@ -101,8 +107,12 @@ def listgroup():
                 except KeyError:
                     memberlist = []
 
-                # If the RDN of a hostgroup member is "fqdn", then it's a host
-                # If the RDN of a hostgroup member is "cn", then it's a nested hostgroup
+                # If the RDN of a hostgroup member is "cn", 
+                # then it's a nested hostgroup.
+                #
+                # If the RDN of a hostgroup member is "fqdn", 
+                # then it's a host.
+
                 hosts = []
                 children = []
                 for member in memberlist:
@@ -113,9 +123,14 @@ def listgroup():
                         hosts.append(memberdn[0][0][1])
 
                 if (children != []):
-                    hostgroup[groupname] = { 'hosts': hosts, 'children': children } 
+                    hostgroup[groupname] = { 
+                        'hosts': hosts, 
+                        'children': children 
+                    }
                 else:
-                    hostgroup[groupname] = { 'hosts': hosts } 
+                    hostgroup[groupname] = { 
+                        'hosts': hosts 
+                    }
 
         # assume that we have no hostvars
         hostgroup["_meta"] = { 'hostvars': {}}
@@ -131,6 +146,7 @@ def listhost(hostname):
     # does not check to ensure host exists
     # assume that we have no hostvars
     print(json.dumps({}))
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 2 and (sys.argv[1] == '--list'):
