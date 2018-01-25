@@ -97,40 +97,40 @@ def listgroup():
         hostgroup = {}
         while 1:
             result_type, result_data = l.result(ldap_result, 0)
-        if (result_data == []):
-            break
-        else:
-            if result_type == ldap.RES_SEARCH_ENTRY:
-                groupname = result_data[0][1]['cn'][0]
-                try:
-                    memberlist = result_data[0][1]['member']
-                except KeyError:
-                    memberlist = []
+            if (result_data == []):
+                break
+            else:
+                if result_type == ldap.RES_SEARCH_ENTRY:
+                    groupname = result_data[0][1]['cn'][0]
+                    try:
+                        memberlist = result_data[0][1]['member']
+                    except KeyError:
+                        memberlist = []
 
-                # If the RDN of a hostgroup member is "cn", 
-                # then it's a nested hostgroup.
-                #
-                # If the RDN of a hostgroup member is "fqdn", 
-                # then it's a host.
+                    # If the RDN of a hostgroup member is "cn", 
+                    # then it's a nested hostgroup.
+                    #
+                    # If the RDN of a hostgroup member is "fqdn", 
+                    # then it's a host.
 
-                hosts = []
-                children = []
-                for member in memberlist:
-                    memberdn = ldap.dn.str2dn(member)
-                    if (memberdn[0][0][0] == "cn"):
-                        children.append(memberdn[0][0][1])
-                    if (memberdn[0][0][0] == "fqdn"):
-                        hosts.append(memberdn[0][0][1])
+                    hosts = []
+                    children = []
+                    for member in memberlist:
+                        memberdn = ldap.dn.str2dn(member)
+                        if (memberdn[0][0][0] == "cn"):
+                            children.append(memberdn[0][0][1])
+                        if (memberdn[0][0][0] == "fqdn"):
+                            hosts.append(memberdn[0][0][1])
 
-                if (children != []):
-                    hostgroup[groupname] = { 
-                        'hosts': hosts, 
-                        'children': children 
-                    }
-                else:
-                    hostgroup[groupname] = { 
-                        'hosts': hosts 
-                    }
+                    if (children != []):
+                        hostgroup[groupname] = { 
+                            'hosts': hosts, 
+                            'children': children 
+                        }
+                    else:
+                        hostgroup[groupname] = { 
+                            'hosts': hosts 
+                        }
 
         # assume that we have no hostvars
         hostgroup["_meta"] = { 'hostvars': {}}
