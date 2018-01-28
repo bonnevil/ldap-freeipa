@@ -93,7 +93,6 @@ def listgroup():
             search_filter,
             search_attribute
         )
-        ldap_result_set = []
         hostgroup = {}
         while 1:
             result_type, result_data = l.result(ldap_result, 0)
