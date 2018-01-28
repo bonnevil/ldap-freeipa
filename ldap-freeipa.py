@@ -132,7 +132,7 @@ def listgroup():
                         }
 
         # assume that we have no hostvars
-        hostgroup["_meta"] = { 'hostvars': {}}
+        hostgroup["_meta"] = {'hostvars': {}}
         print(json.dumps(hostgroup))
 
     except ldap.LDAPError, e:
