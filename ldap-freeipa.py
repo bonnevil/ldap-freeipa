@@ -70,15 +70,15 @@ def listgroup():
     # search for hostgroups (objectclass=ipahostgroup),
     # and retrieve all values of their 'member' attributes
 
-    l = ldap.initialize(LDAP_URI)
+    conn = ldap.initialize(LDAP_URI)
     basedn = LDAP_BASEDN
     search_scope = ldap.SCOPE_SUBTREE
     search_filter = "(objectclass=ipahostgroup)"
     search_attribute = ["cn", "member"]
 
     try:
-        l.protocol_version = ldap.VERSION3
-        l.simple_bind_s(LDAP_BINDDN, LDAP_BINDPW)
+        conn.protocol_version = ldap.VERSION3
+        conn.simple_bind_s(LDAP_BINDDN, LDAP_BINDPW)
     except ldap.INVALID_CREDENTIALS:
         print("Your bind DN or password is incorrect.")
         sys.exit(1)
@@ -87,7 +87,7 @@ def listgroup():
         sys.exit(1)
 
     try:
-        ldap_result = l.search(
+        ldap_result = conn.search(
             basedn,
             search_scope,
             search_filter,
@@ -95,7 +95,7 @@ def listgroup():
         )
         hostgroup = {}
         while 1:
-            result_type, result_data = l.result(ldap_result, 0)
+            result_type, result_data = conn.result(ldap_result, 0)
             if (result_data == []):
                 break
             else:
@@ -138,7 +138,7 @@ def listgroup():
     except ldap.LDAPError, e:
         print("LDAPError: %s." % e)
     finally:
-        l.unbind_s()
+        conn.unbind_s()
 
 
 def listhost(hostname):
