@@ -3,7 +3,7 @@
 # ldap-freeipa.py
 # Dynamic inventory script for FreeIPA using LDAP simple binds
 # Steve Bonneville <sbonnevi@redhat.com>
-# 
+#
 # Copyright 2017 Red Hat, Inc.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ LDAP_BINDPW = "needabetterpassword"
 # Work needed:
 # * LDAPS support for FreeIPA
 # * Potentially set some host variables from other attributes
-# * Make it easier for a newbie to set the LDAP_* variables above 
+# * Make it easier for a newbie to set the LDAP_* variables above
 
 # DO NOT EDIT BELOW THIS LINE.
 ###################################################
@@ -70,15 +70,15 @@ def listgroup():
     # search for hostgroups (objectclass=ipahostgroup),
     # and retrieve all values of their 'member' attributes
 
-    l = ldap.initialize(LDAP_URI)
+    conn = ldap.initialize(LDAP_URI)
     basedn = LDAP_BASEDN
     search_scope = ldap.SCOPE_SUBTREE
     search_filter = "(objectclass=ipahostgroup)"
     search_attribute = ["cn", "member"]
 
     try:
-        l.protocol_version = ldap.VERSION3
-        l.simple_bind_s(LDAP_BINDDN, LDAP_BINDPW)
+        conn.protocol_version = ldap.VERSION3
+        conn.simple_bind_s(LDAP_BINDDN, LDAP_BINDPW)
     except ldap.INVALID_CREDENTIALS:
         print("Your bind DN or password is incorrect.")
         sys.exit(1)
@@ -87,16 +87,15 @@ def listgroup():
         sys.exit(1)
 
     try:
-        ldap_result = l.search(
-            basedn, 
-            search_scope, 
-            search_filter, 
+        ldap_result = conn.search(
+            basedn,
+            search_scope,
+            search_filter,
             search_attribute
         )
-        ldap_result_set = []
         hostgroup = {}
         while 1:
-            result_type, result_data = l.result(ldap_result, 0)
+            result_type, result_data = conn.result(ldap_result, 0)
             if (result_data == []):
                 break
             else:
@@ -107,10 +106,10 @@ def listgroup():
                     except KeyError:
                         memberlist = []
 
-                    # If the RDN of a hostgroup member is "cn", 
+                    # If the RDN of a hostgroup member is "cn",
                     # then it's a nested hostgroup.
                     #
-                    # If the RDN of a hostgroup member is "fqdn", 
+                    # If the RDN of a hostgroup member is "fqdn",
                     # then it's a host.
 
                     hosts = []
@@ -123,23 +122,23 @@ def listgroup():
                             hosts.append(memberdn[0][0][1])
 
                     if (children != []):
-                        hostgroup[groupname] = { 
-                            'hosts': hosts, 
-                            'children': children 
+                        hostgroup[groupname] = {
+                            'hosts': hosts,
+                            'children': children
                         }
                     else:
-                        hostgroup[groupname] = { 
-                            'hosts': hosts 
+                        hostgroup[groupname] = {
+                            'hosts': hosts
                         }
 
         # assume that we have no hostvars
-        hostgroup["_meta"] = { 'hostvars': {}}
+        hostgroup["_meta"] = {'hostvars': {}}
         print(json.dumps(hostgroup))
 
     except ldap.LDAPError, e:
         print("LDAPError: %s." % e)
     finally:
-        l.unbind_s()
+        conn.unbind_s()
 
 
 def listhost(hostname):
@@ -152,7 +151,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 2 and (sys.argv[1] == '--list'):
         listgroup()
     elif len(sys.argv) == 3 and (sys.argv[1] == '--host'):
-        listhost(sys.argv[2]) 
+        listhost(sys.argv[2])
     else:
         print("Usage: %s --list or --host <hostname>" % sys.argv[0])
         sys.exit(1)
