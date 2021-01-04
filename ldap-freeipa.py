@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # ldap-freeipa.py
 # Dynamic inventory script for FreeIPA using LDAP simple binds
@@ -82,7 +82,7 @@ def listgroup():
     except ldap.INVALID_CREDENTIALS:
         print("Your bind DN or password is incorrect.")
         sys.exit(1)
-    except ldap.LDAPError, e:
+    except ldap.LDAPError as e:
         print("LDAPError: %s." % e)
         sys.exit(1)
 
@@ -100,7 +100,7 @@ def listgroup():
                 break
             else:
                 if result_type == ldap.RES_SEARCH_ENTRY:
-                    groupname = result_data[0][1]['cn'][0]
+                    groupname = result_data[0][1]['cn'][0].decode("utf-8")
                     try:
                         memberlist = result_data[0][1]['member']
                     except KeyError:
@@ -135,7 +135,7 @@ def listgroup():
         hostgroup["_meta"] = {'hostvars': {}}
         print(json.dumps(hostgroup))
 
-    except ldap.LDAPError, e:
+    except ldap.LDAPError as e:
         print("LDAPError: %s." % e)
     finally:
         conn.unbind_s()
