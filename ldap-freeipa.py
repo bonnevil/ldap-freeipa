@@ -32,7 +32,10 @@
 
 import json
 import ldap
+import os
 import sys
+import six
+from six.moves import configparser
 
 ###################################################
 # DO NOT EDIT ABOVE THIS LINE.
@@ -55,30 +58,87 @@ LDAP_BASEDN = "dc=lab,dc=example,dc=com"
 LDAP_BINDDN = "uid=inventory,cn=users,cn=accounts,dc=lab,dc=example,dc=com"
 LDAP_BINDPW = "needabetterpassword"
 
+# DO NOT EDIT BELOW THIS LINE.
+###################################################
+
+# Above settings will be used as defaults.
+# These settings can be overwritten by a ini file with a `ldap-freeipa` section
+# and valid entries. The path of the ini file can be set with the environment
+# variable 'LDAP_FREEIPA_INI_PATH', defaults to `ldap-freeipa.ini` in same
+# directory as the `ldap-freeipa.py` script.
+#
+# Example `ldap-freeipa.ini`:
+#
+# [ldap-freeipa]
+# ldap_uri = ldap://utility.lab.example.com
+# ldap_basedn = dc=lab,dc=example,dc=com
+# ldap_bindpw = needabetterpassword
+# ldap_binddn = uid=inventory,cn=users,cn=accounts,dc=lab,dc=example,dc=com
+
 # Work needed:
 # * LDAPS support for FreeIPA
 # * Potentially set some host variables from other attributes
 # * Make it easier for a newbie to set the LDAP_* variables above
 
-# DO NOT EDIT BELOW THIS LINE.
-###################################################
+
+def get_config():
+    '''
+    Reads the settings from the ldap-freeipa.ini file
+    Returns ldap-freeipa setting dict.
+    '''
+
+    defaults = {
+        'ldap-freeipa': {
+            'ldap_uri': LDAP_URI,
+            'ldap_basedn': LDAP_BASEDN,
+            'ldap_binddn': LDAP_BINDDN,
+            'ldap_bindpw': LDAP_BINDPW,
+            'ini_path': os.path.join(
+                os.path.dirname(__file__),
+                'ldap-freeipa.ini',
+            )
+        }
+    }
+
+    if six.PY3:
+        config = configparser.ConfigParser()
+    else:
+        config = configparser.SafeConfigParser()
+
+    # where is the config?
+    ldap_freeipa_ini_path = os.environ.get(
+        'LDAP_FREEIPA_INI_PATH',
+        defaults['ldap-freeipa']['ini_path'])
+    config.read(ldap_freeipa_ini_path)
+
+    if 'ldap-freeipa' not in config.sections():
+        config.add_section('ldap-freeipa')
+
+    # apply defaults
+    for k, v in defaults['ldap-freeipa'].items():
+        if not config.has_option('ldap-freeipa', k):
+            config.set('ldap-freeipa', k, str(v))
+
+    # update ini_path
+    config.set('ldap-freeipa', 'ini_path', ldap_freeipa_ini_path)
+
+    return dict(config.items('ldap-freeipa'))
 
 
-def listgroup():
+def listgroup(ldap_uri, ldap_basedn, ldap_binddn, ldap_bindpw):
 
     # Simple bind to the FreeIPA server and run a subtree
     # search for hostgroups (objectclass=ipahostgroup),
     # and retrieve all values of their 'member' attributes
 
-    conn = ldap.initialize(LDAP_URI)
-    basedn = LDAP_BASEDN
+    conn = ldap.initialize(ldap_uri)
     search_scope = ldap.SCOPE_SUBTREE
     search_filter = "(objectclass=ipahostgroup)"
     search_attribute = ["cn", "member"]
 
     try:
         conn.protocol_version = ldap.VERSION3
-        conn.simple_bind_s(LDAP_BINDDN, LDAP_BINDPW)
+        conn.simple_bind_s(ldap_binddn, ldap_bindpw)
     except ldap.INVALID_CREDENTIALS:
         print("Your bind DN or password is incorrect.")
         sys.exit(1)
@@ -88,7 +148,7 @@ def listgroup():
 
     try:
         ldap_result = conn.search(
-            basedn,
+            ldap_basedn,
             search_scope,
             search_filter,
             search_attribute
@@ -149,7 +209,13 @@ def listhost(hostname):
 
 if __name__ == '__main__':
     if len(sys.argv) == 2 and (sys.argv[1] == '--list'):
-        listgroup()
+        config = get_config()
+        listgroup(
+            config['ldap_uri'],
+            config['ldap_basedn'],
+            config['ldap_binddn'],
+            config['ldap_bindpw'],
+        )
     elif len(sys.argv) == 3 and (sys.argv[1] == '--host'):
         listhost(sys.argv[2])
     else:
